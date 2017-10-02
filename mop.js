@@ -1,6 +1,6 @@
 (function () {
     setTimeout(function () {
-        var empId = ........;
+        var empId = ........;//You have to get your ID from chrome web developer mode [F12]
         var inTotalTimeDiv = $("#inTotalTime");
         var inMonthTotalTimeDiv = $("#inMonthTotalTime");
 
