@@ -1,6 +1,6 @@
 (function () {
     setTimeout(function () {
-        var empId = .......;
+        var empId = ?????;
         var inTotalTimeDiv = $("#inTotalTime");
         var inMonthTotalTimeDiv = $("#inMonthTotalTime");
 
@@ -46,7 +46,8 @@
             var date = moment($("#datepicker").datepicker('getDate')).format('YYYY-MM-DD');
 
             calculateInTime(date, function (total) {
-                inTotalTimeDiv.text(total.getValue() != null ? total.getValue().format("HH:mm:ss") : '');
+				showResultForTheDay(total);
+                
             });
         }
 
@@ -90,7 +91,20 @@
 		function minToHourMin(minutes){
 			return minutes % 60;
 		}
-		
+
+		function showResultForTheDay(total){
+			if(total.getValue()== null){
+				inTotalTimeDiv.html('');
+				return ;				
+			}
+			inTotalTimeDiv.html(
+				  '<span style="font-size: 10px;color:gray;">Calculation</span>'
+				+ '<div style="border: 1px solid gray;width: 400px; padding: 3px;font-weight: bold; font-size: 12px;">'
+				+ '<span title="Czas spędzony w firmie w ciągu wybranego dnia">Czas: '+total.getValue().format("HH \\h mm \\min")+"</span>"
+				+ '</div>'
+			);
+		}
+
         function showResult(avgMinutes, missingMin, minutes, days, weekendsMin, todayMin) {
 			var hours_all = minToHours(minutes);
             var minutes_all = minToHourMin(minutes);
@@ -109,8 +123,8 @@
             inMonthTotalTimeDiv.html(
 				  '<span style="font-size: 10px;color:gray;">Calculation</span>'
 				+ '<div style="border: 1px solid gray;width: 400px; padding: 3px;">'
-				+ 'Czas: ' + hours_all + ' h ' + minutes_all + ' min'
-                + '<br />Dni: ' + days+ ''
+				+ '<span title="Całkowita suma czasów spędzonych w firmie od początku wybranego miesiąca do bieżącego dnia i godziny">Czas: ' + hours_all + ' h ' + minutes_all + ' min</span>'
+                + '<br /><span title="Liczba dni jaka minęła od wybranego miesiąca i jest wymagana przez system pracowniczy">Dni: ' + days+ '</span>'
                 + '<br /><br />Dzienna średnia: ' + moment({h: parseInt(avgMinutes / 60, 10), m: (avgMinutes - (parseInt(avgMinutes / 60, 10) * 60))}).format("HH \\h mm \\min")
                 + (weekendsMin > 0 ? '<br />Weekends: ' + hours_weekends + ' h ' + minutes_weekends + ' min' : '')
 				+ (todayMin > 0 ? '<br /><i style="color: gray;">Dziś w pracy: ' + hours_today + ' h ' + minutes_today + ' min </i>' : '')
@@ -119,7 +133,7 @@
             );
         }
 
-
+		// Dzień
         $(".scannerPresence").click(function () {
             dayClickCalculate();
         });
@@ -128,11 +142,9 @@
             dayClickCalculate();
         });
 
-        //$("#datepicker").datepicker('setDate', new Date());
-
         dayClickCalculate();
 
-        // Cały mc
+        // Cały miesiąc
         function monthCalculate() {
             var days = 0;
             var minutes = 0;
