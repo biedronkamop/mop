@@ -114,7 +114,7 @@
                 + '<br /><br />Dzienna średnia: ' + moment({h: parseInt(avgMinutes / 60, 10), m: (avgMinutes - (parseInt(avgMinutes / 60, 10) * 60))}).format("HH \\h mm \\min")
                 + (weekendsMin > 0 ? '<br />Weekends: ' + hours_weekends + ' h ' + minutes_weekends + ' min' : '')
 				+ (todayMin > 0 ? '<br /><i style="color: gray;">Dziś w pracy: ' + hours_today + ' h ' + minutes_today + ' min </i>' : '')
-                + '<br /><br />Brakuje: <span style="color: '+(missingMin > 0 ? 'red' : 'green')+';" title="' + missingMin + ' min">' + hours_brak + ' h ' + minutes_brak + ' min</span>'
+                + '<br /><br />'+(missingMin > 0 ? 'Brakuje' : 'Nadgodziny')+': <span style="color: '+(missingMin > 0 ? 'red' : 'green')+';" title="' + missingMin + ' min">' + hours_brak + ' h ' + minutes_brak + ' min</span>'
 				+ '</div>'
             );
         }
