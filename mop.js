@@ -1,6 +1,6 @@
 (function () {
     setTimeout(function () {
-        var empId = ........;//You have to get your ID from chrome web developer mode [F12]
+        var empId = .......;
         var inTotalTimeDiv = $("#inTotalTime");
         var inMonthTotalTimeDiv = $("#inMonthTotalTime");
 
@@ -78,20 +78,44 @@
                 callback(total);
             });
         }
+		
+		function getMinutes(hours, minutes){
+			return hours * 60 + minutes;                        
+		}
 
-        function showResult(avgMinutes, brakuje, minutes, days, weekendsMinutes) {
-            var hours_brak = (brakuje < 0 ? -1 : 1) * Math.floor(Math.abs(brakuje / 60));
-            var minutes_brak = brakuje % 60;
+		function minToHours(minutes){
+			 return (minutes < 0 ? -1 : 1) * Math.floor(Math.abs(minutes / 60));
+		}
+		
+		function minToHourMin(minutes){
+			return minutes % 60;
+		}
+		
+        function showResult(avgMinutes, missingMin, minutes, days, weekendsMin, todayMin) {
+			var hours_all = minToHours(minutes);
+            var minutes_all = minToHourMin(minutes);
+						
+            var hours_brak = minToHours(missingMin);
+            var minutes_brak = minToHourMin(missingMin);
 
-            var hours_weekends = (weekendsMinutes < 0 ? -1 : 1) * Math.floor(Math.abs(weekendsMinutes / 60));
-            var minutes_weekends = weekendsMinutes % 60;
-
+            var hours_weekends = minToHours(weekendsMin);
+            var minutes_weekends = minToHourMin(weekendsMin);
+			
+			var hours_today = minToHours(todayMin);
+            var minutes_today = minToHourMin(todayMin);
+			
+			// missingMin + ' minut'
+			
             inMonthTotalTimeDiv.html(
-                'Czas całkowity: ' + parseInt(minutes / 60, 10) + ':' + pad(minutes - (parseInt(minutes / 60, 10) * 60), 2)
-                + '<br />Dni: ' + days
-                + '<br />Średnia dziennie: ' + moment({h: parseInt(avgMinutes / 60, 10), m: (avgMinutes - (parseInt(avgMinutes / 60, 10) * 60))}).format("HH:mm")
-                + '<br />Weekends: ' + hours_weekends + ' h ' + minutes_weekends + ' min'
-                + '<br /><br />Brakuje: ' + brakuje + ' minut' + ' => (' + hours_brak + ' h ' + minutes_brak + ' min)'
+				  '<span style="font-size: 10px;color:gray;">Calculation</span>'
+				+ '<div style="border: 1px solid gray;width: 400px; padding: 3px;">'
+				+ 'Czas: ' + hours_all + ' h ' + minutes_all + ' min'
+                + '<br />Dni: ' + days+ ''
+                + '<br /><br />Dzienna średnia: ' + moment({h: parseInt(avgMinutes / 60, 10), m: (avgMinutes - (parseInt(avgMinutes / 60, 10) * 60))}).format("HH \\h mm \\min")
+                + (weekendsMin > 0 ? '<br />Weekends: ' + hours_weekends + ' h ' + minutes_weekends + ' min' : '')
+				+ (todayMin > 0 ? '<br /><i style="color: gray;">Dziś w pracy: ' + hours_today + ' h ' + minutes_today + ' min </i>' : '')
+                + '<br /><br />Brakuje: <span style="color: '+(missingMin > 0 ? 'red' : 'green')+';" title="' + missingMin + ' min">' + hours_brak + ' h ' + minutes_brak + ' min</span>'
+				+ '</div>'
             );
         }
 
@@ -112,8 +136,9 @@
         function monthCalculate() {
             var days = 0;
             var minutes = 0;
-            var brakuje = 0;
-            var weekendsMinutes = 0;
+            var missingMin = 0;
+            var weekendsMin = 0;
+            var todayMin = 0 ;
             $("#datepicker .scannerPresence").each(function (i, d) {
                 var $dayTr = $(d);
                 var day = moment({y: $dayTr.data('year'), M: $dayTr.data('month'), d: $dayTr.children('a').first().text()});                
@@ -122,27 +147,28 @@
                     ++days;
                     // Todo: to wyciągnąć wyżej i dać urlopy jeszcze nieobecności brak karty itp.                
                     if (total != null) {
-                        minutes += total.getValue().hours() * 60;
-                        minutes += total.getValue().minutes();
-
+						if(total.getValue().date()==new Date().getDate()){
+							todayMin = getMinutes(total.getValue().hours(), total.getValue().minutes());
+						}
+                        minutes += getMinutes(total.getValue().hours(), total.getValue().minutes());
+						
                         var avgMinutes = parseInt(minutes / days);
-                        brakuje = (days * 8 * 60) - minutes;
-                        showResult(avgMinutes, brakuje, minutes, days, weekendsMinutes);
+                        missingMin = (days * 8 * 60) - minutes;
+                        showResult(avgMinutes, missingMin, minutes, days, weekendsMin, todayMin);
                     }
                 })
             });
             $("#datepicker .ui-datepicker-week-end").each(function (i, d) {
                 var $dayTr = $(d);
-                var day = moment({y: $dayTr.data('year'), M: $dayTr.data('month'), d: $dayTr.children('a').first().text()});
+                var day = moment({y: $dayTr.data('year'), M: $dayTr.data('month'), d: $dayTr.children('a').first().text()});                
+
                 calculateInTime(day.format('YYYY-MM-DD'), function (total) {
                     if (total != null && total.getValue() != null) {
-                        minutes += total.getValue().hours() * 60;
-                        minutes += total.getValue().minutes();
+                        minutes += getMinutes(total.getValue().hours(), total.getValue().minutes());
                         var avgMinutes = parseInt(minutes / days);
-                        weekendsMinutes = weekendsMinutes + total.getValue().hours() * 60 + total.getValue().minutes();
-                        brakuje = brakuje - minutes;
-                        showResult(avgMinutes, brakuje, minutes, days, weekendsMinutes);
-
+                        weekendsMin = weekendsMin + total.getValue().hours() * 60 + total.getValue().minutes();
+                        missingMin = missingMin - minutes;
+                        showResult(avgMinutes, missingMin, minutes, days, weekendsMin, todayMin);
                     }
                 })
             });
